@@ -213,7 +213,7 @@ def verify_windows_exe(exe_path):
     assert pe.verify_checksum()
 
 
-def patch_mac_app():
+def patch_mac_app(qt6):
     """Patch .app to use our Info.plist and save some space."""
     app_path = os.path.join('dist', 'qutebrowser.app')
 
@@ -226,10 +226,16 @@ def patch_mac_app():
         plistlib.dump(plist_data, f)
 
     # Replace some duplicate files by symlinks
-    framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt5',
-                                  'Qt5', 'lib', 'QtWebEngineCore.framework')
+    ver = '6' if qt6 else '5'
+    framework_path = os.path.join(app_path, 'Contents', 'MacOS', f'PyQt{ver}',
+                                  f'Qt{ver}', 'lib', 'QtWebEngineCore.framework')
 
-    core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
+    core_lib = os.path.join(
+        framework_path,
+        'Versions',
+        'A' if qt6 else '5',
+        'QtWebEngineCore',
+    )
     os.remove(core_lib)
     core_target = os.path.join(*[os.pardir] * 7, 'MacOS', 'QtWebEngineCore')
     os.symlink(core_target, core_lib)
@@ -290,7 +296,7 @@ INFO_PLIST_UPDATES = {
 }
 
 
-def build_mac(*, gh_token, debug):
+def build_mac(*, qt6, gh_token, debug):
     """Build macOS .dmg/.app."""
     utils.print_title("Cleaning up...")
     for f in ['wc.dmg', 'template.dmg']:
@@ -301,13 +307,12 @@ def build_mac(*, gh_token, debug):
     for d in ['dist', 'build']:
         shutil.rmtree(d, ignore_errors=True)
     utils.print_title("Updating 3rdparty content")
-    # FIXME:qt6 Use modern PDF.js version here
-    update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=True, fancy_dmg=False,
+    update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=not qt6, fancy_dmg=False,
                         gh_token=gh_token)
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller-64', '-r', debug=debug)
     utils.print_title("Patching .app")
-    patch_mac_app()
+    patch_mac_app(qt6=qt6)
     utils.print_title("Building .dmg")
     subprocess.run(['make', '-f', 'scripts/dev/Makefile-dmg'], check=True)
 
@@ -393,11 +398,10 @@ def _build_windows_single(*, x64, skip_packaging, debug):
     )
 
 
-def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit, debug):
+def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit, qt6, debug):
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    # FIXME:qt6 Use modern PDF.js version here
-    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, legacy_pdfjs=True,
+    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, legacy_pdfjs=not qt6,
                         fancy_dmg=False, gh_token=gh_token)
 
     utils.print_title("Building Windows binaries")
@@ -414,7 +418,7 @@ def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit, debug):
             skip_packaging=skip_packaging,
             debug=debug,
         )
-    if not only_64bit:
+    if not only_64bit and not qt6:
         artifacts += _build_windows_single(
             x64=False,
             skip_packaging=skip_packaging,
@@ -647,6 +651,8 @@ def main():
                         help="Skip Windows 32 bit build.", dest='only_64bit')
     parser.add_argument('--debug', action='store_true', required=False,
                         help="Build a debug build.")
+    parser.add_argument('--qt6', action='store_true', required=False,
+                        help="Build against PyQt6")
     args = parser.parse_args()
     utils.change_cwd()
 
@@ -675,10 +681,11 @@ def main():
             skip_packaging=args.skip_packaging,
             only_32bit=args.only_32bit,
             only_64bit=args.only_64bit,
+            qt6=args.qt6,
             debug=args.debug,
         )
     elif sys.platform == 'darwin':
-        artifacts = build_mac(gh_token=gh_token, debug=args.debug)
+        artifacts = build_mac(qt6=args.qt6, gh_token=gh_token, debug=args.debug)
     else:
         test_makefile()
         artifacts = build_sdist()
