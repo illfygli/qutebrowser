@@ -310,7 +310,7 @@ def build_mac(*, qt6, gh_token, debug):
     update_3rdparty.run(ace=False, pdfjs=True, legacy_pdfjs=not qt6, fancy_dmg=False,
                         gh_token=gh_token)
     utils.print_title("Building .app via pyinstaller")
-    call_tox('pyinstaller-64', '-r', debug=debug)
+    call_tox(f'pyinstaller-64{"-qt6" if qt6 else ""}', '-r', debug=debug)
     utils.print_title("Patching .app")
     patch_mac_app(qt6=qt6)
     utils.print_title("Building .dmg")
@@ -362,7 +362,7 @@ def _get_windows_python_path(x64):
         return fallback
 
 
-def _build_windows_single(*, x64, skip_packaging, debug):
+def _build_windows_single(*, x64, qt6, skip_packaging, debug):
     """Build on Windows for a single architecture."""
     human_arch = '64-bit' if x64 else '32-bit'
     utils.print_title(f"Running pyinstaller {human_arch}")
@@ -372,7 +372,10 @@ def _build_windows_single(*, x64, skip_packaging, debug):
     _maybe_remove(outdir)
 
     python = _get_windows_python_path(x64=x64)
-    call_tox(f'pyinstaller-{"64" if x64 else "32"}', '-r', python=python, debug=debug)
+    suffix = "64" if x64 else "32"
+    if qt6:
+        suffix += "-qt6"
+    call_tox(f'pyinstaller-{suffix}', '-r', python=python, debug=debug)
 
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
     shutil.move(out_pyinstaller, outdir)
@@ -417,12 +420,14 @@ def build_windows(*, gh_token, skip_packaging, only_32bit, only_64bit, qt6, debu
             x64=True,
             skip_packaging=skip_packaging,
             debug=debug,
+            qt6=qt6,
         )
     if not only_64bit and not qt6:
         artifacts += _build_windows_single(
             x64=False,
             skip_packaging=skip_packaging,
             debug=debug,
+            qt6=qt6,
         )
 
     return artifacts
