@@ -1695,14 +1695,15 @@ class WebEngineTab(browsertab.AbstractTab):
         If a transition into `state` is already schedule, do nothing.
         If `state` is `None`, cancel any scheduled transition.
         """
+        url = self.url() if self.url().isValid() else None
         timers = {
             QWebEnginePage.LifecycleState.Frozen: (
                 self._lifecycle_timer_freeze,
-                config.val.qt.chromium.lifecycle_state_freeze_delay,
+                config.instance.get('qt.chromium.lifecycle_state_freeze_delay', url=url),
             ),
             QWebEnginePage.LifecycleState.Discarded: (
                 self._lifecycle_timer_discard,
-                config.val.qt.chromium.lifecycle_state_discard_delay,
+                config.instance.get('qt.chromium.lifecycle_state_discard_delay', url=url),
             ),
         }
 
@@ -1730,7 +1731,8 @@ class WebEngineTab(browsertab.AbstractTab):
             self._schedule_lifecycle_transition(None)
             return
 
-        disabled = not config.val.qt.chromium.use_recommended_page_lifecycle_state
+        url = self.url() if self.url().isValid() else None
+        disabled = not config.instance.get('qt.chromium.use_recommended_page_lifecycle_state', url=url)
 
         if recommended_state == QWebEnginePage.LifecycleState.Active:
             self._schedule_lifecycle_transition(None)
@@ -1739,6 +1741,14 @@ class WebEngineTab(browsertab.AbstractTab):
             self._schedule_lifecycle_transition(None)
         else:
             self._schedule_lifecycle_transition(recommended_state)
+
+    @pyqtSlot(QUrl)
+    def _on_url_changed_recheck_lifecycle(self, url: QUrl) -> None:
+        if not url.isValid():
+            return
+
+        # Reset lifecycle delay config on URL change.
+        self._schedule_lifecycle_transition(None)
 
     def _connect_signals(self):
         view = self._widget
@@ -1760,6 +1770,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
         if version.qtwebengine_versions().webengine >= utils.VersionNumber(6, 5):
             page.recommendedStateChanged.connect(self._on_recommended_state_changed)
+            view.urlChanged.connect(self._on_url_changed_recheck_lifecycle)
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
