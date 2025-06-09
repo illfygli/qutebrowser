@@ -1992,7 +1992,7 @@ Feature: Tab management
 
     @qt>=6.5
     Scenario: Lifecycle change on tab switch
-        When I set qt.chromium.use_recommended_page_lifecycle_state to true
+        When I set content.lifecycle.enabled to true
         And I open about:blank?1
         And I open about:blank?2 in a new tab
         And I run :tab-prev

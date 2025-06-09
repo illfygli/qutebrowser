@@ -177,6 +177,9 @@
 |<<content.javascript.log_message.levels,content.javascript.log_message.levels>>|Javascript message sources/levels to show in the qutebrowser UI.
 |<<content.javascript.modal_dialog,content.javascript.modal_dialog>>|Use the standard JavaScript modal dialog for `alert()` and `confirm()`.
 |<<content.javascript.prompt,content.javascript.prompt>>|Show javascript prompts.
+|<<content.lifecycle.enabled,content.lifecycle.enabled>>|Enable use of recommended page lifecycle state.
+|<<content.lifecycle.discard_ms,content.lifecycle.discard_ms>>|The amount of time (in milliseconds) to wait before transitioning a page to the discarded lifecycle state.
+|<<content.lifecycle.freeze_ms,content.lifecycle.freeze_ms>>|The amount of time (in milliseconds) to wait before transitioning a page to the frozen lifecycle state.
 |<<content.local_content_can_access_file_urls,content.local_content_can_access_file_urls>>|Allow locally loaded documents to access other local URLs.
 |<<content.local_content_can_access_remote_urls,content.local_content_can_access_remote_urls>>|Allow locally loaded documents to access remote URLs.
 |<<content.local_storage,content.local_storage>>|Enable support for HTML 5 local storage and Web SQL.
@@ -293,12 +296,9 @@
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.chromium.experimental_web_platform_features,qt.chromium.experimental_web_platform_features>>|Enables Web Platform features that are in development.
-|<<qt.chromium.lifecycle_state_discard_delay,qt.chromium.lifecycle_state_discard_delay>>|The amount of time (in milliseconds) to wait before transitioning a page to the discarded lifecycle state.
-|<<qt.chromium.lifecycle_state_freeze_delay,qt.chromium.lifecycle_state_freeze_delay>>|The amount of time (in milliseconds) to wait before transitioning a page to the frozen lifecycle state.
 |<<qt.chromium.low_end_device_mode,qt.chromium.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.chromium.process_model,qt.chromium.process_model>>|Which Chromium process model to use.
 |<<qt.chromium.sandboxing,qt.chromium.sandboxing>>|What sandboxing mechanisms in Chromium to use.
-|<<qt.chromium.use_recommended_page_lifecycle_state,qt.chromium.use_recommended_page_lifecycle_state>>|Use recommended page lifecycle state.
 |<<qt.environ,qt.environ>>|Additional environment variables to set.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_platformtheme,qt.force_platformtheme>>|Force a Qt platformtheme to use.
@@ -2459,6 +2459,45 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
+[[content.lifecycle.discard_ms]]
+=== content.lifecycle.discard_ms
+The amount of time (in milliseconds) to wait before transitioning a page to the discarded lifecycle state.
+Set to -1 to disable
+
+This setting is only available with the QtWebEngine backend.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,Int>>
+
+Default: +pass:[-1]+
+
+[[content.lifecycle.freeze_ms]]
+=== content.lifecycle.freeze_ms
+The amount of time (in milliseconds) to wait before transitioning a page to the frozen lifecycle state.
+To disable set content.lifecycle.enabled to false.
+
+This setting is only available with the QtWebEngine backend.
+
+This setting supports link:configuring{outfilesuffix}#patterns[URL patterns].
+
+Type: <<types,Int>>
+
+Default: +pass:[600000]+
+
+[[content.lifecycle.enabled]]
+=== content.lifecycle.enabled
+Enable use of recommended page lifecycle state.
+This puts webpages into one of three lifecycle states: active, frozen, or discarded. Using the recommended lifecycle state lets the browser use less resources by freezing or discarding web views when it's safe to do so.
+This results in significant battery life savings.
+Ongoing page activity is taken into account when determining the recommended lifecycle state, as to not disrupt your browsing.
+
+This setting is only available with the QtWebEngine backend.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[content.local_content_can_access_file_urls]]
 === content.local_content_can_access_file_urls
 Allow locally loaded documents to access other local URLs.
@@ -3846,26 +3885,6 @@ Valid values:
 
 Default: +pass:[auto]+
 
-[[qt.chromium.lifecycle_state_discard_delay]]
-=== qt.chromium.lifecycle_state_discard_delay
-The amount of time (in milliseconds) to wait before transitioning a page to the discarded lifecycle state.
-
-This setting is only available with the QtWebEngine backend.
-
-Type: <<types,Int>>
-
-Default: +pass:[0]+
-
-[[qt.chromium.lifecycle_state_freeze_delay]]
-=== qt.chromium.lifecycle_state_freeze_delay
-The amount of time (in milliseconds) to wait before transitioning a page to the frozen lifecycle state.
-
-This setting is only available with the QtWebEngine backend.
-
-Type: <<types,Int>>
-
-Default: +pass:[0]+
-
 [[qt.chromium.low_end_device_mode]]
 === qt.chromium.low_end_device_mode
 When to use Chromium's low-end device mode.
@@ -3932,19 +3951,6 @@ Valid values:
  * +disable-all+: Disable all sandboxing (**not recommended!**).
 
 Default: +pass:[enable-all]+
-
-[[qt.chromium.use_recommended_page_lifecycle_state]]
-=== qt.chromium.use_recommended_page_lifecycle_state
-Use recommended page lifecycle state.
-This puts webpages into one of three lifecycle states: active, frozen, or discarded. Using the recommended lifecycle state lets the browser use less resources by freezing or discarding web views when it's safe to do so.
-This results in significant battery life savings.
-Ongoing page activity is taken into account when determining the recommended lifecycle state, as to not disrupt your browsing.
-
-This setting is only available with the QtWebEngine backend.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
 
 [[qt.environ]]
 === qt.environ

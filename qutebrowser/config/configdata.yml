@@ -345,56 +345,6 @@ qt.chromium.experimental_web_platform_features:
     Chromium. By default, this is enabled with Qt 5 to maximize compatibility
     despite an aging Chromium base.
 
-qt.chromium.use_recommended_page_lifecycle_state:
-  type: Bool
-  default: false
-  backend: QtWebEngine
-  # yamllint disable rule:line-length
-  supports_pattern: true
-  desc: >-
-    Use recommended page lifecycle state.
-
-    This puts webpages into one of three lifecycle states: active, frozen, or
-    discarded. Using the recommended lifecycle state lets the browser use less
-    resources by freezing or discarding web views when it's safe to do so.
-
-    This results in significant battery life savings.
-
-    Ongoing page activity is taken into account when determining the
-    recommended lifecycle state, as to not disrupt your browsing.
-
-    This feature is only available on QtWebEngine 6.5+. On older versions
-    this setting is ignored.
-
-    See the Qt documentation for more details: https://doc.qt.io/qt-6/qtwebengine-features.html#page-lifecycle-api
-  # yamllint enable rule:line-length
-
-qt.chromium.lifecycle_state_freeze_delay:
-  type:
-    name: Int
-    minval: 0
-    maxval: maxint
-  default: 0
-  backend: QtWebEngine
-  supports_pattern: true
-  desc: >-
-    The amount of time (in milliseconds) to wait before transitioning a page to
-    the frozen lifecycle state.
-
-qt.chromium.lifecycle_state_discard_delay:
-  type:
-    name: Int
-    minval: -1
-    maxval: maxint
-  default: 0
-  backend: QtWebEngine
-  supports_pattern: true
-  desc: >-
-    The amount of time (in milliseconds) to wait before transitioning a page to
-    the discarded lifecycle state.
-
-    Set to -1 to disable this state.
-
 qt.highdpi:
   type: Bool
   default: false
@@ -1127,6 +1077,56 @@ content.javascript.legacy_touch_events:
     Newer Chromium versions have those disabled by default:
     https://bugs.chromium.org/p/chromium/issues/detail?id=392584
     https://groups.google.com/a/chromium.org/g/blink-dev/c/KV6kqDJpYiE
+
+content.lifecycle.enabled:
+  type: Bool
+  default: false
+  backend: QtWebEngine
+  # yamllint disable rule:line-length
+  supports_pattern: true
+  desc: >-
+    Enable use of recommended page lifecycle state.
+
+    This puts webpages into one of three lifecycle states: active, frozen, or
+    discarded. Using the recommended lifecycle state lets the browser use less
+    resources by freezing or discarding web views when it's safe to do so.
+
+    This results in significant battery life savings.
+
+    Ongoing page activity is taken into account when determining the
+    recommended lifecycle state, as to not disrupt your browsing.
+
+    This feature is only available on QtWebEngine 6.5+. On older versions
+    this setting is ignored.
+
+    See the Qt documentation for more details: https://doc.qt.io/qt-6/qtwebengine-features.html#page-lifecycle-api
+  # yamllint enable rule:line-length
+
+content.lifecycle.freeze_ms:
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
+  default: 0
+  backend: QtWebEngine
+  supports_pattern: true
+  desc: >-
+    The amount of time (in milliseconds) to wait before transitioning a page to
+    the frozen lifecycle state.
+
+content.lifecycle.discard_ms:
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+  default: 0
+  backend: QtWebEngine
+  supports_pattern: true
+  desc: >-
+    The amount of time (in milliseconds) to wait before transitioning a page to
+    the discarded lifecycle state.
+
+    Set to -1 to disable this state.
 
 content.local_content_can_access_remote_urls:
   default: false
